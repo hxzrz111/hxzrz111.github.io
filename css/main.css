@@ -1730,6 +1730,10 @@ pre .javascript .function {
   height: auto;
   border: 2px solid #333;
   opacity: 1;
+  border-radius: 50%;
+  -webkit-border-radius: 50%;
+  -moz-border-radius: 50%;
+  transition: 1.4s all;
 }
 .site-author-name {
   margin: 5px 0 0;
@@ -1742,6 +1746,12 @@ pre .javascript .function {
   text-align: center;
   font-size: 14px;
   color: #999;
+}
+.site-author-image:hover {
+  -webkit-transform: rotate(360deg);
+  -moz-transform: rotate(360deg);
+  -ms-transform: rotate(360deg);
+  -transform: rotate(360deg);
 }
 .links-of-author {
   margin-top: 20px;
@@ -1764,7 +1774,7 @@ pre .javascript .function {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: #af16f6;
+  background: #58ff46;
 }
 .feed-link,
 .chat {
