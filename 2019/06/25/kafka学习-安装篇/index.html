@@ -101,13 +101,18 @@
 
 
 
-  <meta property="og:type" content="website">
-<meta property="og:title" content="友人A">
-<meta property="og:url" content="http://yoursite.com/index.html">
+  <meta name="description" content="docker 安装 zookeeper kafka1. docker 下载 zookeeper and kafka//下载zookeeper docker pull wurstmeister/zookeeper  //下载kafka docker pull wurstmeister/kafka2. 启动镜像//启动zookeeper     docker run -d --name zookeep">
+<meta name="keywords" content="kakfa">
+<meta property="og:type" content="article">
+<meta property="og:title" content="kafka学习-安装篇">
+<meta property="og:url" content="http://yoursite.com/2019/06/25/kafka学习-安装篇/index.html">
 <meta property="og:site_name" content="友人A">
+<meta property="og:description" content="docker 安装 zookeeper kafka1. docker 下载 zookeeper and kafka//下载zookeeper docker pull wurstmeister/zookeeper  //下载kafka docker pull wurstmeister/kafka2. 启动镜像//启动zookeeper     docker run -d --name zookeep">
 <meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-06-25T15:53:30.080Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="友人A">
+<meta name="twitter:title" content="kafka学习-安装篇">
+<meta name="twitter:description" content="docker 安装 zookeeper kafka1. docker 下载 zookeeper and kafka//下载zookeeper docker pull wurstmeister/zookeeper  //下载kafka docker pull wurstmeister/kafka2. 启动镜像//启动zookeeper     docker run -d --name zookeep">
 
 
 
@@ -115,7 +120,7 @@
 
   
   
-  <link rel="canonical" href="http://yoursite.com/">
+  <link rel="canonical" href="http://yoursite.com/2019/06/25/kafka学习-安装篇/">
 
 
 
@@ -125,7 +130,7 @@
   };
 </script>
 
-  <title>友人A</title>
+  <title>kafka学习-安装篇 | 友人A</title>
   
 
 
@@ -173,8 +178,7 @@
     
   
 
-  <div class="container sidebar-position-left 
-  page-home">
+  <div class="container sidebar-position-left page-post-detail">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -216,7 +220,7 @@
         
         
           
-          <li class="menu-item menu-item-home menu-item-active">
+          <li class="menu-item menu-item-home">
 
     
     
@@ -341,9 +345,9 @@
           
           <div id="content" class="content">
             
-  <section id="posts" class="posts-expand">
+
+  <div id="posts" class="posts-expand">
     
-      
 
   
 
@@ -375,10 +379,8 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">
-                
-                
-                <a href="/2019/06/25/kafka学习-安装篇/" class="post-title-link" itemprop="url">kafka学习-安装篇</a>
+          <h1 class="post-title" itemprop="name headline">kafka学习-安装篇
+
               
             
           </h1>
@@ -442,6 +444,13 @@
           
 
           
+            <span class="post-meta-divider">|</span>
+            <span class="post-meta-item-icon">
+            <i class="fa fa-eye"></i>
+             阅读次数： 
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
 
           
 
@@ -460,26 +469,38 @@
       
 
       
-        
-          
-            <p>
-              docker 安装 zookeeper kafka1. docker 下载 zookeeper and kafka//下载zookeeper
+        <h1 id="docker-安装-zookeeper-kafka"><a href="#docker-安装-zookeeper-kafka" class="headerlink" title="docker 安装 zookeeper kafka"></a>docker 安装 zookeeper kafka</h1><h2 id="1-docker-下载-zookeeper-and-kafka"><a href="#1-docker-下载-zookeeper-and-kafka" class="headerlink" title="1. docker 下载 zookeeper and kafka"></a>1. docker 下载 zookeeper and kafka</h2><pre><code>//下载zookeeper
 docker pull wurstmeister/zookeeper
 
 //下载kafka
-docker pull wurstmeister/kafka2. 
-              ...
-            </p>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2019/06/25/kafka学习-安装篇/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
+docker pull wurstmeister/kafka</code></pre><h2 id="2-启动镜像"><a href="#2-启动镜像" class="headerlink" title="2. 启动镜像"></a>2. 启动镜像</h2><pre><code>//启动zookeeper    
+docker run -d --name zookeeper --publish 2181:2181 --volume /etc/localtime:/etc/localtime wurstmeister/zookeeper
+
+//启动kafka
+docker run -d --name kafka --publish 9092:9092 \
+--link zookeeper \
+--env KAFKA_ZOOKEEPER_CONNECT=127.0.0.1:2181 \
+--env KAFKA_ADVERTISED_HOST_NAME=127.0.0.1 \
+--env KAFKA_ADVERTISED_PORT=9092  \
+--volume /etc/localtime:/etc/localtime \
+wurstmeister/kafka
+
+127.0.0.1 换成自己的ip</code></pre><h2 id="3-进入容器"><a href="#3-进入容器" class="headerlink" title="3. 进入容器"></a>3. 进入容器</h2><pre><code>docker exec -it kafka /bin/sh
+
+cd opt/kafka_2.12-2.2.1/bin</code></pre><h2 id="4-测试kafka"><a href="#4-测试kafka" class="headerlink" title="4. 测试kafka"></a>4. 测试kafka</h2><pre><code>// 创建topic
+./kafka-topics.sh --create --zookeeper 47.104.178.113:2181 --replication-factor 1 --partitions 1 --topic mykafka
+
+// 查看topic
+./kafka-topics.sh --list --zookeeper 47.104.178.113:2181
+
+// 创建生产者
+./kafka-console-producer.sh --broker-list 47.104.178.113:9092 --topic mykafka 
+
+// 让我们用kafka发送一条消息
+{&apos;hello&apos;,&apos;你好kafka&apos;}
+
+// 创建消费者
+./kafka-console-consumer.sh --zookeeper 47.104.178.113:2181 --topic mykafka --from-beginning</code></pre>
       
     </div>
 
@@ -500,361 +521,47 @@ docker pull wurstmeister/kafka2.
 
     <footer class="post-footer">
       
-
-      
-	  
-      
-        <div class="post-eof"></div>
-      
-
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/22/第二篇测试文章/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="友人A">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="友人A">
-    </span>
-
-    
-      <header class="post-header">
-
         
+          
         
-          <h1 class="post-title" itemprop="name headline">
-                
-                
-                <a href="/2019/06/22/第二篇测试文章/" class="post-title-link" itemprop="url">第二篇测试文章</a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2019-06-22 23:14:57 / 修改时间：23:15:30" itemprop="dateCreated datePublished" datetime="2019-06-22T23:14:57+08:00">2019-06-22</time>
-            
-
-            
-              
-
-              
-            
-          </span>
-
+        <div class="post-tags">
           
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/spring-boot/" itemprop="url" rel="index"><span itemprop="name">spring-boot</span></a></span>
-
-                
-                
-              
-            </span>
+            <a href="/tags/kakfa/" rel="tag"><i class="fa fa-tag"></i> kakfa</a>
           
-
-          
-            
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
         </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
       
 
       
-        
-          
-            <p>
-              试试标题2试试标题3试试正文 引用
-coder测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试
-试试标题3测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试
-试试标题3测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试
-试试标题3测试测试测试测试测试测试测
-              ...
-            </p>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2019/06/22/第二篇测试文章/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
       
-    </div>
-
+	  <div>
+		
+		<div>
     
-
+        <div style="text-align:center;color: #ccc;font-size:14px;">------ 本文结束------</div>
     
-    
-    
-
-    
-
-    
-      
-    
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
+</div>
+		
+	  </div>
+	  
 	  
       
-        <div class="post-eof"></div>
-      
 
       
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/22/我的第一篇文章/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="友人A">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="友人A">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                
-                <a href="/2019/06/22/我的第一篇文章/" class="post-title-link" itemprop="url">我的第一篇文章</a>
-              
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
             
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
+              <a href="/2019/06/22/第二篇测试文章/" rel="next" title="第二篇测试文章">
+                <i class="fa fa-chevron-left"></i> 第二篇测试文章
+              </a>
             
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
             
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2019-06-22 00:10:54 / 修改时间：21:19:01" itemprop="dateCreated datePublished" datetime="2019-06-22T00:10:54+08:00">2019-06-22</time>
-            
-
-            
-              
-
-              
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/spring-boot/" itemprop="url" rel="index"><span itemprop="name">spring-boot</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
+          </div>
         </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>
-              试试标题2试试标题3试试正文 引用
-coder测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试
-试试标题3测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试
-试试标题3测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试
-试试标题3测试测试测试测试测试测试测
-              ...
-            </p>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2019/06/22/我的第一篇文章/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-      
-    
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-	  
-      
-        <div class="post-eof"></div>
-      
-
       
     </footer>
   </div>
@@ -864,14 +571,15 @@ coder测试测试测试测试测试测试测试测试测试测试测试测试测
   </article>
 
 
-    
-  </section>
-
-  
+  </div>
 
 
           </div>
           
+
+  
+
+
 
         </div>
         
@@ -891,8 +599,17 @@ coder测试测试测试测试测试测试测试测试测试测试测试测试测
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <div class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <div class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -978,6 +695,23 @@ coder测试测试测试测试测试测试测试测试测试测试测试测试测
         </div>
       </div>
 
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#docker-安装-zookeeper-kafka"><span class="nav-number">1.</span> <span class="nav-text">docker 安装 zookeeper kafka</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-docker-下载-zookeeper-and-kafka"><span class="nav-number">1.1.</span> <span class="nav-text">1. docker 下载 zookeeper and kafka</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-启动镜像"><span class="nav-number">1.2.</span> <span class="nav-text">2. 启动镜像</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-进入容器"><span class="nav-number">1.3.</span> <span class="nav-text">3. 进入容器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-测试kafka"><span class="nav-number">1.4.</span> <span class="nav-text">4. 测试kafka</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
       
 
       
@@ -1136,6 +870,10 @@ coder测试测试测试测试测试测试测试测试测试测试测试测试测
 
 
   
+  <script src="/js/scrollspy.js?v=7.1.2"></script>
+<script src="/js/post-details.js?v=7.1.2"></script>
+
+
 
   
 
@@ -1151,6 +889,8 @@ coder测试测试测试测试测试测试测试测试测试测试测试测试测
 
   
 
+
+  
 
 
   
