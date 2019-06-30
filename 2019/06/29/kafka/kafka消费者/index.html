@@ -109,7 +109,7 @@
 <meta property="og:site_name" content="友人A">
 <meta property="og:description" content="kafka消费者kafka消费者一个正常的消费逻辑需要具备以下几个步骤：  配置消费者客户端参数及创建相应的消费者实例。 订阅主题。 拉取消息并消费。 提交消费位移。 关闭消费者实例。  kafka消费者参数配置介绍   config-key config-explain    bootstrap.servers 用来指定连接 Kafka 集群所需的 broker 地址清单，具体内容形式为 hos">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-06-29T07:51:58.550Z">
+<meta property="og:updated_time" content="2019-06-30T10:53:52.045Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="kafka消费者">
 <meta name="twitter:description" content="kafka消费者kafka消费者一个正常的消费逻辑需要具备以下几个步骤：  配置消费者客户端参数及创建相应的消费者实例。 订阅主题。 拉取消息并消费。 提交消费位移。 关闭消费者实例。  kafka消费者参数配置介绍   config-key config-explain    bootstrap.servers 用来指定连接 Kafka 集群所需的 broker 地址清单，具体内容形式为 hos">
@@ -405,12 +405,24 @@
                 
               
 
-              <time title="创建时间：2019-06-29 15:51:03 / 修改时间：15:51:58" itemprop="dateCreated datePublished" datetime="2019-06-29T15:51:03+08:00">2019-06-29</time>
+              <time title="创建时间：2019-06-29 15:51:03" itemprop="dateCreated datePublished" datetime="2019-06-29T15:51:03+08:00">2019-06-29</time>
             
 
             
               
 
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2019-06-30 18:53:52" itemprop="dateModified" datetime="2019-06-30T18:53:52+08:00">2019-06-30</time>
               
             
           </span>
@@ -542,7 +554,55 @@ if (partitionInfos != null) {
         partitions.add(new TopicPartition(partitionInfo.topic, partitionInfo.partition()));        
     }
 }
-consumer.assign(partitions);</code></pre><h2 id="取消订阅"><a href="#取消订阅" class="headerlink" title="取消订阅"></a>取消订阅</h2><h3 id="1-unsubscribe"><a href="#1-unsubscribe" class="headerlink" title="1. unsubscribe()"></a>1. unsubscribe()</h3><h3 id="2-subscribe-new-ArrayList"><a href="#2-subscribe-new-ArrayList" class="headerlink" title="2. subscribe(new ArrayList())"></a>2. subscribe(new ArrayList<string>())</string></h3><h3 id="3-assign-new-ArrayList"><a href="#3-assign-new-ArrayList" class="headerlink" title="3. assign(new ArrayList())"></a>3. assign(new ArrayList<topicpartition>())</topicpartition></h3>
+consumer.assign(partitions);</code></pre><h2 id="取消订阅"><a href="#取消订阅" class="headerlink" title="取消订阅"></a>取消订阅</h2><h3 id="1-unsubscribe"><a href="#1-unsubscribe" class="headerlink" title="1. unsubscribe()"></a>1. unsubscribe()</h3><h3 id="2-subscribe-new-ArrayList"><a href="#2-subscribe-new-ArrayList" class="headerlink" title="2. subscribe(new ArrayList())"></a>2. subscribe(new ArrayList<string>())</string></h3><h3 id="3-assign-new-ArrayList"><a href="#3-assign-new-ArrayList" class="headerlink" title="3. assign(new ArrayList())"></a>3. assign(new ArrayList<topicpartition>())</topicpartition></h3><h2 id="拉模式获取消息"><a href="#拉模式获取消息" class="headerlink" title="拉模式获取消息"></a>拉模式获取消息</h2><h3 id="poll"><a href="#poll" class="headerlink" title="poll()"></a>poll()</h3><pre><code>public ConsumerRecords&lt;K, V&gt; poll(final Duration timeout)
+@Deprecated
+public ConsumerRecords&lt;K, V&gt; poll(final long timeout)</code></pre><p>方法中的 timeout 为阻塞时间</p>
+<p>ConsumerRecord 类内部结构为</p>
+<pre><code>public class ConsumerRecord&lt;K, V&gt; {
+    // 主题
+    private final String topic;
+    // 分区编号
+    private final int partition;
+    // 偏移量
+    private final long offset;
+    // 时间戳
+    private final long timestamp;
+    // 时间戳类型
+    private final TimestampType timestampType;
+    // key 序列化后的大小
+    private final int serializedKeySize;
+    // value 序列化后的大小
+    private final int serializedValueSize;
+    // 头信息
+    private final Headers headers;
+    // 消息的 key
+    private final K key;
+    // 消息的 value
+    private final V value;
+    // CRC32 的校验值 (不懂)
+    private volatile Long checksum;
+}</code></pre><p>我们在消费消息的时候可以直接对 ConsumerRecord 中感兴趣的字段进行具体的业务逻辑处理。</p>
+<h2 id="records：按照分区维度来消费"><a href="#records：按照分区维度来消费" class="headerlink" title="records：按照分区维度来消费"></a>records：按照分区维度来消费</h2><pre><code>public List&lt;ConsumerRecord&lt;K, V&gt;&gt; records(TopicPartition partition)</code></pre><h2 id="位移提交"><a href="#位移提交" class="headerlink" title="位移提交"></a>位移提交</h2><p>位移提交中三个重要的概念：</p>
+<ol>
+<li>position：下一次拉取的消息的位置。</li>
+<li>committed_offset：已经提交过的消费位移。</li>
+<li>last_consumed_offset：当前消费到的位置。</li>
+</ol>
+<h3 id="position-：获取-position-的值"><a href="#position-：获取-position-的值" class="headerlink" title="position()：获取 position 的值"></a>position()：获取 position 的值</h3><pre><code>public long position(TopicPartition partition)</code></pre><h3 id="committed-：获取-committed-offset-的值"><a href="#committed-：获取-committed-offset-的值" class="headerlink" title="committed()：获取 committed_offset 的值"></a>committed()：获取 committed_offset 的值</h3><pre><code>public OffsetAndMetadata committed(TopicPartition partition)</code></pre><h2 id="手动提交"><a href="#手动提交" class="headerlink" title="手动提交"></a>手动提交</h2><p>开启手动提交功能的前提是消费者客户端参数 <code>enable.auto.commit</code> 配置为 <code>false</code></p>
+<pre><code>props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);</code></pre><p>手动提交可以细分为 同步提交 和 异步提交。</p>
+<h3 id="commitSync-：同步提交"><a href="#commitSync-：同步提交" class="headerlink" title="commitSync()：同步提交"></a>commitSync()：同步提交</h3><pre><code>public void commitSync()
+public void commitSync(final Map&lt;TopicPartition, OffsetAndMetadata&gt; offsets)</code></pre><h3 id="commitAsync-：异步提交"><a href="#commitAsync-：异步提交" class="headerlink" title="commitAsync()：异步提交"></a>commitAsync()：异步提交</h3><pre><code>public void commitAsync()
+public void commitAsync(OffsetCommitCallback callback)
+public void commitAsync(final Map&lt;TopicPartition, OffsetAndMetadata&gt; offsets, OffsetCommitCallback callback)</code></pre><h2 id="控制或关闭消费"><a href="#控制或关闭消费" class="headerlink" title="控制或关闭消费"></a>控制或关闭消费</h2><p>KafkaConsumer 提供了对消费速度进行控制的方法，在有些应用场景下我们可能需要暂停某些分区的消费而先消费其他分区，当达到一定条件时再恢复这些分区的消费。KafkaConsumer 中使用 pause() 和 resume() 方法来分别实现暂停某些分区在拉取操作时返回数据给客户端和恢复某些分区向客户端返回数据的操作。</p>
+<pre><code>public void pause(Collection&lt;TopicPartition&gt; partitions)
+public void resume(Collection&lt;TopicPartition&gt; partitions)</code></pre><p>KafkaConsumer 还提供了一个无参的 paused() 方法来返回被暂停的分区集合，此方法的具体定义如下：</p>
+<pre><code>public Set&lt;TopicPartition&gt; paused()</code></pre><h2 id="指定位移消费"><a href="#指定位移消费" class="headerlink" title="指定位移消费"></a>指定位移消费</h2><p>这里有个重要的概念，当kafka消费者找不到所记录的消费位移时，就会根据消费者客户端参数 <code>auto.offset.reset</code> 的配置来决定从何处开始进行消费，默认为 <code>latest</code>，表示从分区末尾开始消费信息。这样就会存在消息丢失的问题。如果将该值设置为 <code>earliest</code>，那么就会从开始消费。</p>
+<h3 id="seek"><a href="#seek" class="headerlink" title="seek()"></a>seek()</h3><pre><code>public void seek(TopicPartition partition, long offset)</code></pre><p>TopicPartition：分区。<br>offset：从分区的哪个位置开始消费。</p>
+<h3 id="assignment-：用来获取消费者所分配到的分区信息"><a href="#assignment-：用来获取消费者所分配到的分区信息" class="headerlink" title="assignment()：用来获取消费者所分配到的分区信息"></a>assignment()：用来获取消费者所分配到的分区信息</h3><pre><code>public Set&lt;TopicPartition&gt; assignment()</code></pre><h3 id="endOffsets-：用来获取指定分区末尾的消息位置。"><a href="#endOffsets-：用来获取指定分区末尾的消息位置。" class="headerlink" title="endOffsets()：用来获取指定分区末尾的消息位置。"></a>endOffsets()：用来获取指定分区末尾的消息位置。</h3><pre><code>public Map&lt;TopicPartition, Long&gt; endOffsets(Collection&lt;TopicPartition&gt; partitions)
+public Map&lt;TopicPartition, Long&gt; endOffsets(Collection&lt;TopicPartition&gt; partitions,
+        Duration timeout)</code></pre><h3 id="beginningOffsets-：用来获取指定分区起始的消息位置。"><a href="#beginningOffsets-：用来获取指定分区起始的消息位置。" class="headerlink" title="beginningOffsets()：用来获取指定分区起始的消息位置。"></a>beginningOffsets()：用来获取指定分区起始的消息位置。</h3><pre><code>public Map&lt;TopicPartition, Long&gt; beginningOffsets(Collection&lt;TopicPartition&gt; partitions)
+public Map&lt;TopicPartition, Long&gt; beginningOffsets(Collection&lt;TopicPartition&gt; partitions,
+            Duration timeout)</code></pre><h3 id="seekToBeginning"><a href="#seekToBeginning" class="headerlink" title="seekToBeginning()"></a>seekToBeginning()</h3><pre><code>public void seekToBeginning(Collection&lt;TopicPartition&gt; partitions)</code></pre><h3 id="seekToEnd"><a href="#seekToEnd" class="headerlink" title="seekToEnd()"></a>seekToEnd()</h3><pre><code>public void seekToEnd(Collection&lt;TopicPartition&gt; partitions)</code></pre>
       
     </div>
 
@@ -748,7 +808,7 @@ consumer.assign(partitions);</code></pre><h2 id="取消订阅"><a href="#取消�
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#kafka消费者"><span class="nav-number">1.</span> <span class="nav-text">kafka消费者</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#kafka消费者-1"><span class="nav-number">1.1.</span> <span class="nav-text">kafka消费者</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#kafka消费者参数配置介绍"><span class="nav-number">1.2.</span> <span class="nav-text">kafka消费者参数配置介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Kafka订阅主题方法"><span class="nav-number">1.2.1.</span> <span class="nav-text">Kafka订阅主题方法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-subscribe-：通过主题订阅"><span class="nav-number">1.2.1.1.</span> <span class="nav-text">1. subscribe()：通过主题订阅</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-assign-：通过-主题-分区-的方式订阅"><span class="nav-number">1.2.1.2.</span> <span class="nav-text">2. assign()：通过 主题 + 分区 的方式订阅</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#获取信息"><span class="nav-number">1.3.</span> <span class="nav-text">获取信息</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#partitionsFor-：查询指定主题的元数据信息"><span class="nav-number">1.3.1.</span> <span class="nav-text">partitionsFor()：查询指定主题的元数据信息</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#取消订阅"><span class="nav-number">1.4.</span> <span class="nav-text">取消订阅</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-unsubscribe"><span class="nav-number">1.4.1.</span> <span class="nav-text">1. unsubscribe()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-subscribe-new-ArrayList"><span class="nav-number">1.4.2.</span> <span class="nav-text">2. subscribe(new ArrayList())</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-assign-new-ArrayList"><span class="nav-number">1.4.3.</span> <span class="nav-text">3. assign(new ArrayList())</span></a></li></ol></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#kafka消费者"><span class="nav-number">1.</span> <span class="nav-text">kafka消费者</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#kafka消费者-1"><span class="nav-number">1.1.</span> <span class="nav-text">kafka消费者</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#kafka消费者参数配置介绍"><span class="nav-number">1.2.</span> <span class="nav-text">kafka消费者参数配置介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Kafka订阅主题方法"><span class="nav-number">1.2.1.</span> <span class="nav-text">Kafka订阅主题方法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-subscribe-：通过主题订阅"><span class="nav-number">1.2.1.1.</span> <span class="nav-text">1. subscribe()：通过主题订阅</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-assign-：通过-主题-分区-的方式订阅"><span class="nav-number">1.2.1.2.</span> <span class="nav-text">2. assign()：通过 主题 + 分区 的方式订阅</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#获取信息"><span class="nav-number">1.3.</span> <span class="nav-text">获取信息</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#partitionsFor-：查询指定主题的元数据信息"><span class="nav-number">1.3.1.</span> <span class="nav-text">partitionsFor()：查询指定主题的元数据信息</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#取消订阅"><span class="nav-number">1.4.</span> <span class="nav-text">取消订阅</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-unsubscribe"><span class="nav-number">1.4.1.</span> <span class="nav-text">1. unsubscribe()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-subscribe-new-ArrayList"><span class="nav-number">1.4.2.</span> <span class="nav-text">2. subscribe(new ArrayList())</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-assign-new-ArrayList"><span class="nav-number">1.4.3.</span> <span class="nav-text">3. assign(new ArrayList())</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#拉模式获取消息"><span class="nav-number">1.5.</span> <span class="nav-text">拉模式获取消息</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#poll"><span class="nav-number">1.5.1.</span> <span class="nav-text">poll()</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#records：按照分区维度来消费"><span class="nav-number">1.6.</span> <span class="nav-text">records：按照分区维度来消费</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#位移提交"><span class="nav-number">1.7.</span> <span class="nav-text">位移提交</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#position-：获取-position-的值"><span class="nav-number">1.7.1.</span> <span class="nav-text">position()：获取 position 的值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#committed-：获取-committed-offset-的值"><span class="nav-number">1.7.2.</span> <span class="nav-text">committed()：获取 committed_offset 的值</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#手动提交"><span class="nav-number">1.8.</span> <span class="nav-text">手动提交</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#commitSync-：同步提交"><span class="nav-number">1.8.1.</span> <span class="nav-text">commitSync()：同步提交</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#commitAsync-：异步提交"><span class="nav-number">1.8.2.</span> <span class="nav-text">commitAsync()：异步提交</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#控制或关闭消费"><span class="nav-number">1.9.</span> <span class="nav-text">控制或关闭消费</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#指定位移消费"><span class="nav-number">1.10.</span> <span class="nav-text">指定位移消费</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#seek"><span class="nav-number">1.10.1.</span> <span class="nav-text">seek()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#assignment-：用来获取消费者所分配到的分区信息"><span class="nav-number">1.10.2.</span> <span class="nav-text">assignment()：用来获取消费者所分配到的分区信息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#endOffsets-：用来获取指定分区末尾的消息位置。"><span class="nav-number">1.10.3.</span> <span class="nav-text">endOffsets()：用来获取指定分区末尾的消息位置。</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#beginningOffsets-：用来获取指定分区起始的消息位置。"><span class="nav-number">1.10.4.</span> <span class="nav-text">beginningOffsets()：用来获取指定分区起始的消息位置。</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#seekToBeginning"><span class="nav-number">1.10.5.</span> <span class="nav-text">seekToBeginning()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#seekToEnd"><span class="nav-number">1.10.6.</span> <span class="nav-text">seekToEnd()</span></a></li></ol></li></ol></li></ol></div>
             
 
           </div>
